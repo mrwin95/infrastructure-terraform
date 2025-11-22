@@ -1,0 +1,7 @@
+backend/.terraform
+envs/test/.terraform
+envs/test/.terraform.lock.hcl
+backend/.terraform.lock.hcl
+backend/terraform.tfstate.backup
+envs/test/.terraform/terraform.tfstate
+envs/test/.terraform/providers
