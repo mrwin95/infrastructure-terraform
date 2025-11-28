@@ -23,6 +23,8 @@ node_group_desired = 1
 
 instance_types = ["t3.medium"]
 
-github_role_name = "github-actions-ecr"
-github_repo      = "thangca-dev"
-github_ref       = "ref:refs/heads/main"
+github_role_name    = "github-actions-ecr"
+github_repo         = "thangca-dev"
+github_ref          = "ref:refs/heads/main"
+bucket_terraform_s3 = "winnguyen-terraform-state-2026"
+github_org          = ""
