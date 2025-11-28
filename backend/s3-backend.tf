@@ -1,10 +1,9 @@
 provider "aws" {
-  region  = "ap-northeast-1"
-  profile = "winsso-sam"
+  region = var.region
 }
 
 resource "aws_s3_bucket" "tfstate" {
-  bucket = "winnguyen-terraform-state-2026"
+  bucket = var.tfstate_s3_bucket
 
   lifecycle {
     prevent_destroy = true
