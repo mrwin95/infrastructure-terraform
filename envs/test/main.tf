@@ -33,9 +33,9 @@ module "eks" {
   node_groups = {
     workers = {
       instance_types = ["t3.medium"]
-      min_size       = 1
+      min_size       = 0
       max_size       = 2
-      desired_size   = 1
+      desired_size   = 0
     }
   }
 }
@@ -66,4 +66,14 @@ module "github_oidc" {
   github_org  = "thangca-dev"
   github_repo = "financial-lease"
   github_ref  = "ref:refs/heads/main"
+}
+
+module "external_dns" {
+  source = "../../modules/external-dns"
+
+  cluster_name      = module.eks.cluster_name
+  oidc_provider_arn = module.eks.oidc_provider_arn
+
+  hosted_zone_id = var.hosted_zone_id
+  domain_filters = var.domain_filters
 }
