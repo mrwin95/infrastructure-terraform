@@ -4,7 +4,7 @@ resource "aws_iam_role" "node_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect = "Allow",
+      Effect    = "Allow",
       Principal = { Service = "ec2.amazonaws.com" },
       Action    = "sts:AssumeRole"
     }]
@@ -27,9 +27,7 @@ resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryReadOn
 }
 
 resource "aws_eks_node_group" "managed" {
-  for_each = var.node_groups
-
-#   node_group_name_prefix = "${aws_eks_cluster.this.name}-node-group"
+  for_each        = var.node_groups
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.cluster_name}-${each.key}"
   node_role_arn   = aws_iam_role.node_role.arn

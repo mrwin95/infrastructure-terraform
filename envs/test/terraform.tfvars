@@ -1,2 +1,28 @@
 hosted_zone_id = "Z035780024TVHHHAD6UK7"
 domain_filters = ["thangca.dev"]
+region         = "ap-northeast-1"
+vpc_cidr       = "10.30.0.0/16"
+azs            = ["ap-northeast-1a", "ap-northeast-1c"]
+public_subnet_cidrs = {
+  "ap-northeast-1a" = "10.30.0.0/19"
+  "ap-northeast-1c" = "10.30.32.0/19"
+}
+
+private_subnet_cidrs = {
+  "ap-northeast-1a" = "10.30.96.0/19"
+  "ap-northeast-1c" = "10.30.128.0/19"
+}
+
+stack_name      = "dev"
+cluster_name    = "dev"
+cluster_version = "1.34"
+
+node_group_min     = 0
+node_group_max     = 2
+node_group_desired = 1
+
+instance_types = ["t3.medium"]
+
+github_role_name = "github-actions-ecr"
+github_repo      = "thangca-dev"
+github_ref       = "ref:refs/heads/main"

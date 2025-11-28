@@ -16,9 +16,7 @@ terraform {
 }
 
 provider "aws" {
-  region  = "ap-northeast-1"
-  profile = "winsso-sam"
-
+  region = var.region
   default_tags {
     tags = {
       Environment = terraform.workspace

@@ -25,8 +25,3 @@ output "node_role_arn" {
 output "node_groups" {
   value = [for ng in aws_eks_node_group.managed : ng.node_group_name]
 }
-
-# output "oidc_provider_arn" {
-#   description = "OIDC provider ARN for IRSA"
-#   value       = aws_iam_openid_connect_provider.this.arn
-# }

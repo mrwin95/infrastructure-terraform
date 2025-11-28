@@ -1,19 +1,13 @@
 data "aws_caller_identity" "current" {}
 module "network" {
-  source   = "../../modules/network"
-  vpc_cidr = "10.30.0.0/16"
-  azs      = ["ap-northeast-1a", "ap-northeast-1c"]
-  public_subnet_cidrs = {
-    "ap-northeast-1a" = "10.30.0.0/19"
-    "ap-northeast-1c" = "10.30.32.0/19"
-  }
-  private_subnet_cidrs = {
-    "ap-northeast-1a" = "10.30.96.0/19"
-    "ap-northeast-1c" = "10.30.128.0/19"
-  }
+  source               = "../../modules/network"
+  vpc_cidr             = var.vpc_cidr
+  azs                  = var.azs
+  public_subnet_cidrs  = var.public_subnet_cidrs
+  private_subnet_cidrs = var.private_subnet_cidrs
 
   tags = {
-    stack_name = "blackowl-test"
+    stack_name = var.stack_name
   }
 }
 
@@ -24,18 +18,18 @@ module "security" {
 
 module "eks" {
   source          = "../../modules/eks"
-  cluster_name    = "bos-test"
-  cluster_version = "1.34"
+  cluster_name    = var.cluster_name
+  cluster_version = var.cluster_version
   controlplane_sg = module.security.controlplane_sg
   private_subnets = module.network.private_subnets
   node_shared_sg  = module.security.shared_node_sg
   public_subnets  = module.network.public_subnets
   node_groups = {
     workers = {
-      instance_types = ["t3.medium"]
-      min_size       = 0
-      max_size       = 2
-      desired_size   = 0
+      instance_types = var.instance_types
+      min_size       = var.node_group_min
+      max_size       = var.node_group_max
+      desired_size   = var.node_group_desired
     }
   }
 }
@@ -44,28 +38,21 @@ module "alb_irsa" {
   source = "../../modules/alb-irsa"
 
   cluster_name      = module.eks.cluster_name
-  region            = "ap-northeast-1"
+  region            = var.region
   vpc_id            = module.network.vpc_id
   oidc_provider_arn = module.eks.oidc_provider_arn
 }
 
-# module "alb" {
-#   source       = "../../modules/alb-ingress"
-#   cluster_name = module.eks.cluster_name
-#   vpc_id       = module.network.vpc_id
-#   region       = "ap-northeast-1"
-# }
-
 module "github_oidc" {
   source = "../../modules/github-oidc"
 
-  role_name      = "github-actions-ecr"
-  aws_region     = "ap-northeast-1"
+  role_name      = var.github_role_name
+  aws_region     = var.region
   aws_account_id = data.aws_caller_identity.current.account_id
 
-  github_org  = "thangca-dev"
-  github_repo = "financial-lease"
-  github_ref  = "ref:refs/heads/main"
+  github_org  = var.github_org
+  github_repo = var.github_repo
+  github_ref  = var.github_ref
 }
 
 module "external_dns" {
