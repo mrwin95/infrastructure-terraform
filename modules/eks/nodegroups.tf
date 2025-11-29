@@ -1,5 +1,5 @@
 resource "aws_iam_role" "node_role" {
-  name = "${var.cluster_name}-nodegroup-role"
+  name = "${var.cluster_name}-node-group-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",

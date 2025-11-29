@@ -28,10 +28,9 @@ resource "aws_eks_addon" "pod_identity_agent" {
   depends_on = [aws_eks_cluster.this]
 }
 
-
-resource "aws_eks_addon" "ebs_csi" {
-  cluster_name                = aws_eks_cluster.this.name
-  addon_name                  = "aws-ebs-csi-driver"
-  resolve_conflicts_on_update = "OVERWRITE"
-  depends_on                  = [aws_eks_cluster.this]
-}
+# resource "aws_eks_addon" "ebs_csi" {
+#   cluster_name                = aws_eks_cluster.this.name
+#   addon_name                  = "aws-ebs-csi-driver"
+#   resolve_conflicts_on_update = "OVERWRITE"
+#   depends_on                  = [aws_eks_cluster.this]
+# }

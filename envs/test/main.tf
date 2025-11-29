@@ -64,3 +64,25 @@ module "external_dns" {
   hosted_zone_id = var.hosted_zone_id
   domain_filters = var.domain_filters
 }
+
+module "valkey" {
+  source = "../../modules/elasticache-valkey"
+
+  name       = "dev"
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.private_subnets
+
+  allowed_security_groups = [
+    module.security.shared_node_sg
+  ]
+  multi_az             = false
+  cluster_mode_enabled = false
+  #   engine_version = "valkey7"
+  family     = var.valkey_family
+  node_type  = "cache.t2.small"
+  node_count = 1
+  tags = {
+    tenant = "tenant-a"
+    env    = "prod"
+  }
+}

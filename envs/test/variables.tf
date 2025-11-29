@@ -17,3 +17,4 @@ variable "github_role_name" {}
 variable "github_org" {}
 variable "github_repo" {}
 variable "github_ref" {}
+variable "valkey_family" {}
