@@ -77,12 +77,33 @@ module "valkey" {
   ]
   multi_az             = false
   cluster_mode_enabled = false
-  #   engine_version = "valkey7"
-  family     = var.valkey_family
-  node_type  = "cache.t2.small"
-  node_count = 1
+  family               = var.valkey_family
+  node_type            = "cache.t2.small"
+  node_count           = 1
   tags = {
     tenant = "tenant-a"
+    env    = "prod"
+  }
+}
+
+module "rabbitmq" {
+  source         = "../../modules/rabbitmq"
+  name           = "dev"
+  instance_type  = "mq.t3.micro"
+  engine_version = "3.13"
+  vpc_id         = module.network.vpc_id
+  subnet_ids = [
+    module.network.private_subnets[0]
+  ]
+
+  allowed_security_groups = [
+    module.security.shared_node_sg
+  ]
+
+  multi_az = false
+
+  tags = {
+    tenant = "dev"
     env    = "prod"
   }
 }
