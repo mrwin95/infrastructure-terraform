@@ -18,3 +18,4 @@ variable "github_org" {}
 variable "github_repo" {}
 variable "github_ref" {}
 variable "valkey_family" {}
+variable "secret_string" {}

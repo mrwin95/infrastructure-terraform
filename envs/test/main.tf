@@ -128,3 +128,14 @@ module "tls_ca" {
   namespace_dependency = kubernetes_namespace.platform
   configmap_name       = "aws-root-ca"
 }
+
+module "valkey_irsa" {
+  source = "../../modules/valkey-irsa"
+
+  cluster_oidc_provider_arn = module.eks.oidc_provider_arn
+  namespace                 = "platform"
+  service_account_name      = "valkey-client-sa"
+
+  secret_name   = "valkey/password/dev"
+  secret_string = var.secret_string
+}
