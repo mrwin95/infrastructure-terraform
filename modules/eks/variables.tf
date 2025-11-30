@@ -4,7 +4,7 @@ variable "cluster_name" {
 
 variable "cluster_version" {
   default = "1.34"
-  type = string
+  type    = string
 }
 
 variable "public_subnets" {
@@ -39,4 +39,13 @@ variable "node_groups" {
       max_size       = 2
     }
   }
+}
+
+variable "vpc_id" {
+
+}
+
+variable "tags" {
+  type    = map(string)
+  default = {}
 }

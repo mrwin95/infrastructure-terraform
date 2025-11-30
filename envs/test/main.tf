@@ -24,6 +24,11 @@ module "eks" {
   private_subnets = module.network.private_subnets
   node_shared_sg  = module.security.shared_node_sg
   public_subnets  = module.network.public_subnets
+  vpc_id          = module.network.vpc_id
+  tags = {
+    Project = "Test"
+    Env     = "dev"
+  }
   node_groups = {
     workers = {
       instance_types = var.instance_types
@@ -91,13 +96,16 @@ module "rabbitmq" {
   name           = "dev"
   instance_type  = "mq.t3.micro"
   engine_version = "3.13"
-  vpc_id         = module.network.vpc_id
+
+  vpc_id = module.network.vpc_id
   subnet_ids = [
     module.network.private_subnets[0]
   ]
 
+  publicly_accessible = false
   allowed_security_groups = [
-    module.security.shared_node_sg
+    module.eks.cluster_primary_sg,
+    module.security.shared_node_sg, module.security.controlplane_sg
   ]
 
   multi_az = false

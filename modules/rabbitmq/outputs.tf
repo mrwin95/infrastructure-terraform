@@ -10,10 +10,10 @@ output "management_console" {
   value = aws_mq_broker.this.instances[0].console_url
 }
 
-output "security_group_id" {
-  value = aws_security_group.rabbitmq.id
-}
-
 output "admin_secret_arn" {
   value = aws_secretsmanager_secret.admin.arn
+}
+
+output "security_group_id" {
+  value = try(aws_security_group.rabbitmq[0].id, null)
 }

@@ -3,6 +3,8 @@ locals {
 }
 
 resource "aws_security_group" "rabbitmq" {
+  count = var.publicly_accessible ? 0 : 1
+
   name        = "${local.name_prefix}-sg"
   description = "Security group for RabbitMQ broker"
   vpc_id      = var.vpc_id
@@ -60,12 +62,12 @@ resource "aws_mq_broker" "this" {
   engine_version     = var.engine_version
   host_instance_type = var.instance_type
 
+  publicly_accessible = var.publicly_accessible
   user {
     username = var.admin_username
     password = random_password.password.result
   }
 
-  publicly_accessible        = false
   auto_minor_version_upgrade = true
   deployment_mode            = var.multi_az ? "CLUSTER_MULTI_AZ" : "SINGLE_INSTANCE"
 
@@ -73,11 +75,9 @@ resource "aws_mq_broker" "this" {
     general = true
   }
 
-  security_groups = [
-    aws_security_group.rabbitmq.id
-  ]
+  security_groups = var.publicly_accessible ? null : [aws_security_group.rabbitmq[0].id]
 
-  subnet_ids = var.subnet_ids
+  subnet_ids = var.publicly_accessible ? null : var.subnet_ids
   tags = merge(var.tags, {
     Name = local.name_prefix
   })

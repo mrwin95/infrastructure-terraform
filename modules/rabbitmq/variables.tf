@@ -17,8 +17,8 @@ variable "subnet_ids" {
 
   validation {
     condition = (
-      (var.multi_az == false && length(var.subnet_ids) == 1) ||
-      (var.multi_az == true && length(var.subnet_ids) >= 2)
+        (var.publicly_accessible == true ||
+        (var.publicly_accessible == false && length(var.subnet_ids) >= 1))
     )
     error_message = "For SINGLE_INSTANCE you must specify exactly 1 subnet; for CLUSTER_MULTI_AZ you must specify at least 2 subnets."
   }
@@ -57,4 +57,9 @@ variable "instance_type" {
 variable "tags" {
   type    = map(string)
   default = {}
+}
+
+variable "publicly_accessible" {
+  type    = bool
+  default = false
 }

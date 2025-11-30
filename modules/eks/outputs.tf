@@ -25,3 +25,11 @@ output "node_role_arn" {
 output "node_groups" {
   value = [for ng in aws_eks_node_group.managed : ng.node_group_name]
 }
+
+output "node_group_sg_id" {
+  value = aws_security_group.node_group_sg.id
+}
+
+output "cluster_primary_sg" {
+  value = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+}
