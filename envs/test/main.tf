@@ -1,4 +1,9 @@
 data "aws_caller_identity" "current" {}
+resource "kubernetes_namespace" "platform" {
+  metadata {
+    name = "platform"
+  }
+}
 module "network" {
   source               = "../../modules/network"
   vpc_cidr             = var.vpc_cidr
@@ -78,7 +83,8 @@ module "valkey" {
   subnet_ids = module.network.private_subnets
 
   allowed_security_groups = [
-    module.security.shared_node_sg
+    # module.security.shared_node_sg
+    module.eks.cluster_primary_sg
   ]
   multi_az             = false
   cluster_mode_enabled = false
@@ -114,4 +120,11 @@ module "rabbitmq" {
     tenant = "dev"
     env    = "prod"
   }
+}
+
+module "tls_ca" {
+  source               = "../../modules/tls-ca"
+  namespace            = kubernetes_namespace.platform.metadata[0].name
+  namespace_dependency = kubernetes_namespace.platform
+  configmap_name       = "aws-root-ca"
 }
