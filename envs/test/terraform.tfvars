@@ -23,10 +23,13 @@ node_group_desired = 1
 
 instance_types = ["t3.medium"]
 
-github_role_name    = "github-actions-ecr"
-github_repo         = "thangca-dev"
-github_ref          = "ref:refs/heads/main"
-bucket_terraform_s3 = "winnguyen-terraform-state-2026"
-github_org          = ""
-valkey_family       = "valkey7"
-secret_string       = "Thang123456"
+github_role_name         = "github-actions-ecr"
+github_repo              = "thangca-dev"
+github_ref               = "ref:refs/heads/main"
+bucket_terraform_s3      = "winnguyen-terraform-state-2026"
+github_org               = ""
+valkey_family            = "valkey7"
+secret_string            = "Thang123456"
+ses_role_name            = "eks-ses-irsa-role"
+ses_service_account_name = "ses-sender-sa"
+email_service_ns         = "email-service"

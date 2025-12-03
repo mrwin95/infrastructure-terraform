@@ -14,3 +14,7 @@ locals {
 output "oidc_provider_arn" {
   value = aws_iam_openid_connect_provider.this.arn
 }
+
+output "oidc_host" {
+  value = local.oidc_host
+}

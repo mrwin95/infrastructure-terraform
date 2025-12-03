@@ -139,3 +139,17 @@ module "valkey_irsa" {
   secret_name   = "valkey/password/dev"
   secret_string = var.secret_string
 }
+
+module "ses_irsa" {
+  source                = "../../modules/ses-irsa"
+  role_name             = var.ses_role_name
+  eks_oidc_provider_arn = module.eks.oidc_provider_arn
+  eks_oidc_provider_url = module.eks.oidc_host
+  namespace             = var.email_service_ns
+  service_account_name  = var.ses_service_account_name
+
+  tags = {
+    Project = "Test"
+    Env     = "dev"
+  }
+}

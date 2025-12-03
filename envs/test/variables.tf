@@ -19,3 +19,6 @@ variable "github_repo" {}
 variable "github_ref" {}
 variable "valkey_family" {}
 variable "secret_string" {}
+variable "ses_role_name" {}
+variable "ses_service_account_name" {}
+variable "email_service_ns" {}
