@@ -100,3 +100,5 @@ redis-cli --tls \
   -h dev-valkey-001.dev-valkey.tz62q6.apne1.cache.amazonaws.com \
   -p 6379 ping
 
+
+docker buildx build --platform linux/amd64,linux/arm64 -t 792248914698.dkr.ecr.ap-northeast-1.amazonaws.com/ses-service:latest --push .

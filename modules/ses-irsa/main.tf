@@ -1,5 +1,12 @@
+resource "kubernetes_namespace" "ns" {
+  metadata {
+    name = var.namespace
+  }
+}
 resource "aws_iam_role" "this" {
-  name = var.role_name
+
+  depends_on = [kubernetes_namespace.ns]
+  name       = var.role_name
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -44,4 +51,16 @@ resource "aws_iam_policy" "ses" {
 resource "aws_iam_role_policy_attachment" "ses_attach" {
   role       = aws_iam_role.this.name
   policy_arn = aws_iam_policy.ses.arn
+}
+
+resource "kubernetes_service_account" "sa" {
+  metadata {
+    name      = var.service_account_name
+    namespace = kubernetes_namespace.ns.metadata[0].name
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.this.arn
+    }
+  }
+
+  depends_on = [kubernetes_namespace.ns]
 }
