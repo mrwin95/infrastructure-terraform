@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
-ENV="${1:-dev}"
-MODULE="${2:-all}"
+
+ACTION="${1:-apply}"
+ENV="${2:-dev}"
+MODULE="${3:-all}"
 CLUSTER="dev"
 TFVARS="envs/${ENV}.tfvars"
 BACKEND_FILE="backend-config/${ENV}.hcl"
@@ -12,6 +14,7 @@ RED="\033[0;31m"
 NC="\033[0m"
 
 echo -e "${GREEN}=== Terraform Runner ===${NC}"
+echo -e "${YELLOW}Action:      ${ACTION}${NC}"
 echo -e "${YELLOW}Environment: ${ENV}${NC}"
 echo -e "${YELLOW}TFVars file: ${TFVARS}${NC}"
 echo
@@ -45,6 +48,22 @@ TARGET_OPTION=""
 if [[ "${MODULE}" != "all" ]]; then
     TARGET_OPTION="-target=module.${MODULE}"
     echo -e "${YELLOW}Targeting module: ${MODULE}${NC}"
+fi
+
+if [[ "${ACTION}" == "destroy" ]]; then
+  echo -e "${RED}WARNING: You are about to destroy resources in '${ENV}'${NC}"
+  read -p "Type 'yes' to confirm: " CONFIRM
+
+  if [[ "${CONFIRM}" != "yes" ]]; then
+    echo -e "${RED}Destroy aborted.${NC}"
+    exit 1
+  fi
+
+  echo -e "${YELLOW}Running Terraform Destroy...${NC}"
+  terraform destroy -var-file="${TFVARS}" ${TARGET_OPTION}
+
+  echo -e "${GREEN}Destroy completed.${NC}"
+  exit 0
 fi
 
 echo -e "${YELLOW}Running Terraform Plan...${NC}"

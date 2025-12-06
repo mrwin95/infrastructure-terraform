@@ -41,18 +41,38 @@ module "eks" {
   }
 }
 
-module "alb" {
-  source       = "./modules/eks-pod-identity"
-  cluster_name = module.eks.cluster_name
-  name_prefix  = "alb"
-  workloads = {
-    alb = {
-      namespace            = "kube-system"
-      service_account_name = "aws-load-balancer-controller"
+# module "alb_pod_identity" {
+#   source = "./modules/eks-pod-identity"
+#   providers = {
+#     kubernetes = kubernetes
+#     helm       = helm
+#     aws        = aws
+#   }
 
-      policy_json = file("${path.module}/policies/alb-controller-policy.json")
-    }
+#   cluster_name = module.eks.cluster_name
+#   name_prefix  = terraform.workspace
+#   workloads = {
+#     alb = {
+#       namespace            = "kube-system"
+#       service_account_name = "aws-load-balancer-controller"
+
+#       policy_json = file("${path.module}/policies/alb-controller-policy.json")
+#     }
+#   }
+# }
+
+module "alb" {
+  source = "./modules/alb"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
   }
+
+  cluster_name    = module.eks.cluster_name
+  region          = var.region
+  vpc_id          = module.network.vpc_id
+  name_prefix     = terraform.workspace
+  alb_policy_file = "${path.root}/policies/alb-controller-policy.json"
 }
 
 # module "alb" {
@@ -76,76 +96,76 @@ module "alb" {
 #   github_ref  = var.github_ref
 # }
 
-module "external_dns" {
-  source = "./modules/external-dns"
+# module "external_dns" {
+#   source = "./modules/external-dns"
 
-  cluster_name      = module.eks.cluster_name
-  oidc_provider_arn = module.eks.oidc_provider_arn
+#   cluster_name      = module.eks.cluster_name
+#   oidc_provider_arn = module.eks.oidc_provider_arn
 
-  hosted_zone_id = var.hosted_zone_id
-  domain_filters = var.domain_filters
-}
+#   hosted_zone_id = var.hosted_zone_id
+#   domain_filters = var.domain_filters
+# }
 
-module "cache" {
-  source = "./modules/elasticache-valkey"
+# module "cache" {
+#   source = "./modules/elasticache-valkey"
 
-  name       = "dev"
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.private_subnets
+#   name       = "dev"
+#   vpc_id     = module.network.vpc_id
+#   subnet_ids = module.network.private_subnets
 
-  allowed_security_groups = [
-    module.eks.cluster_primary_sg
-  ]
-  multi_az             = false
-  cluster_mode_enabled = false
-  family               = var.valkey_family
-  node_type            = "cache.t2.small"
-  node_count           = 1
-  tags = {
-    Org     = var.org
-    Project = var.project
-    Env     = var.env
-    Cluster = var.cluster
-  }
-}
+#   allowed_security_groups = [
+#     module.eks.cluster_primary_sg
+#   ]
+#   multi_az             = false
+#   cluster_mode_enabled = false
+#   family               = var.valkey_family
+#   node_type            = "cache.t2.small"
+#   node_count           = 1
+#   tags = {
+#     Org     = var.org
+#     Project = var.project
+#     Env     = var.env
+#     Cluster = var.cluster
+#   }
+# }
 
-module "cache_irsa" {
-  source = "./modules/valkey-irsa"
+# module "cache_irsa" {
+#   source = "./modules/valkey-irsa"
 
-  cluster_oidc_provider_arn = module.eks.oidc_provider_arn
-  namespace                 = "platform"
-  service_account_name      = "valkey-client-sa"
+#   cluster_oidc_provider_arn = module.eks.oidc_provider_arn
+#   namespace                 = "platform"
+#   service_account_name      = "valkey-client-sa"
 
-  secret_name   = "valkey/password/dev"
-  secret_string = var.secret_string
-}
+#   secret_name   = "valkey/password/dev"
+#   secret_string = var.secret_string
+# }
 
-module "rabbitmq" {
-  source         = "./modules/rabbitmq"
-  name           = "dev"
-  instance_type  = "mq.t3.micro"
-  engine_version = "3.13"
+# module "rabbitmq" {
+#   source         = "./modules/rabbitmq"
+#   name           = "dev"
+#   instance_type  = "mq.t3.micro"
+#   engine_version = "3.13"
 
-  vpc_id = module.network.vpc_id
-  subnet_ids = [
-    module.network.private_subnets[0]
-  ]
+#   vpc_id = module.network.vpc_id
+#   subnet_ids = [
+#     module.network.private_subnets[0]
+#   ]
 
-  publicly_accessible = false
-  allowed_security_groups = [
-    module.eks.cluster_primary_sg,
-    module.security.shared_node_sg, module.security.controlplane_sg
-  ]
+#   publicly_accessible = false
+#   allowed_security_groups = [
+#     module.eks.cluster_primary_sg,
+#     module.security.shared_node_sg, module.security.controlplane_sg
+#   ]
 
-  multi_az = false
+#   multi_az = false
 
-  tags = {
-    Org     = var.org
-    Project = var.project
-    Env     = var.env
-    Cluster = var.cluster
-  }
-}
+#   tags = {
+#     Org     = var.org
+#     Project = var.project
+#     Env     = var.env
+#     Cluster = var.cluster
+#   }
+# }
 
 # module "tls_ca" {
 #   source               = "./modules/tls-ca"

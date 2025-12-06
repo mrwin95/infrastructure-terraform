@@ -2,14 +2,14 @@ resource "aws_iam_role" "this" {
   for_each = var.workloads
   name     = "${var.name_prefix}-${each.key}-pod-identity-role"
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        Effect = "Allow"
-        Principal = {
-          Service = "eks.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : "pods.eks.amazonaws.com"
+        },
+        "Action" : ["sts:AssumeRole", "sts:TagSession"],
       }
     ]
   })
