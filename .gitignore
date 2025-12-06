@@ -7,3 +7,4 @@ envs/test/.terraform/providers
 terraform.tfstate
 envs/test/terraform.tfvars
 ses-service/node_modules
+node_modules
