@@ -2,9 +2,8 @@
 terraform.tfstate
 .terraform.lock.hcl
 terraform.tfstate.backup
-terraform.tfstate
 envs/test/.terraform/providers
-terraform.tfstate
-envs/test/terraform.tfvars
+terraform.tfvars
 ses-service/node_modules
 node_modules
+tfplan-dev.bin

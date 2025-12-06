@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-ENV="dev"
+ENV="${1:-dev}"
+MODULE="${2:-all}"
 CLUSTER="dev"
 TFVARS="envs/${ENV}.tfvars"
 BACKEND_FILE="backend-config/${ENV}.hcl"
@@ -40,16 +41,22 @@ fi
 echo -e "${YELLOW}Selecting workspace: ${ENV}${NC}"
 terraform workspace select "${ENV}"
 
+TARGET_OPTION=""
+if [[ "${MODULE}" != "all" ]]; then
+    TARGET_OPTION="-target=module.${MODULE}"
+    echo -e "${YELLOW}Targeting module: ${MODULE}${NC}"
+fi
+
 echo -e "${YELLOW}Running Terraform Plan...${NC}"
 PLAN_FILE="tfplan-${ENV}.bin"
-terraform plan -var-file="${TFVARS}" -out="${PLAN_FILE}"
+terraform plan -var-file="${TFVARS}" ${TARGET_OPTION} -out="${PLAN_FILE}"
 
 echo
-
 read -p "Apply the plan? (y/n): " CONFIRM
+
 if [[ "${CONFIRM}" =~ ^[Yy]$ ]]; then
     echo -e "${YELLOW}Applying Terraform Plan...${NC}"
-    terraform apply "${PLAN_FILE}" -auto-approve
+    terraform apply "${PLAN_FILE}"
     echo -e "${GREEN}Terraform Apply completed successfully.${NC}"
 else
     echo -e "${RED}Terraform Apply aborted by user.${NC}"

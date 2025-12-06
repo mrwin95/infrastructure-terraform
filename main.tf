@@ -1,10 +1,4 @@
 data "aws_caller_identity" "current" {}
-
-# resource "kubernetes_namespace" "platform" {
-#   metadata {
-#     name = "platform"
-#   }
-# }
 module "network" {
   source               = "./modules/network"
   vpc_cidr             = var.vpc_cidr
@@ -17,36 +11,52 @@ module "network" {
   }
 }
 
-# module "security" {
-#   source = "../../modules/security"
-#   vpc_id = module.network.vpc_id
-# }
+module "security" {
+  source = "./modules/security"
+  vpc_id = module.network.vpc_id
+}
 
-# module "eks" {
-#   source          = "../../modules/eks"
-#   cluster_name    = var.cluster_name
-#   cluster_version = var.cluster_version
-#   controlplane_sg = module.security.controlplane_sg
-#   private_subnets = module.network.private_subnets
-#   node_shared_sg  = module.security.shared_node_sg
-#   public_subnets  = module.network.public_subnets
-#   vpc_id          = module.network.vpc_id
-#   tags = {
-#     Project = "Test"
-#     Env     = "dev"
-#   }
-#   node_groups = {
-#     workers = {
-#       instance_types = var.instance_types
-#       min_size       = var.node_group_min
-#       max_size       = var.node_group_max
-#       desired_size   = var.node_group_desired
-#     }
-#   }
-# }
+module "eks" {
+  source          = "./modules/eks"
+  cluster_name    = var.cluster_name
+  cluster_version = var.cluster_version
+  controlplane_sg = module.security.controlplane_sg
+  private_subnets = module.network.private_subnets
+  node_shared_sg  = module.security.shared_node_sg
+  public_subnets  = module.network.public_subnets
+  vpc_id          = module.network.vpc_id
+  tags = {
+    Org     = var.org
+    Project = var.project
+    Env     = var.env
+    Cluster = var.cluster
+  }
+  node_groups = {
+    workers = {
+      instance_types = var.instance_types
+      min_size       = var.node_group_min
+      max_size       = var.node_group_max
+      desired_size   = var.node_group_desired
+    }
+  }
+}
 
-# module "alb_irsa" {
-#   source = "../../modules/alb-irsa"
+module "alb" {
+  source       = "./modules/eks-pod-identity"
+  cluster_name = module.eks.cluster_name
+  name_prefix  = "alb"
+  workloads = {
+    alb = {
+      namespace            = "kube-system"
+      service_account_name = "aws-load-balancer-controller"
+
+      policy_json = file("${path.module}/policies/alb-controller-policy.json")
+    }
+  }
+}
+
+# module "alb" {
+#   source = "./modules/alb-irsa"
 
 #   cluster_name      = module.eks.cluster_name
 #   region            = var.region
@@ -54,8 +64,8 @@ module "network" {
 #   oidc_provider_arn = module.eks.oidc_provider_arn
 # }
 
-# module "github_oidc" {
-#   source = "../../modules/github-oidc"
+# module "oidc" {
+#   source = "./modules/github-oidc"
 
 #   role_name      = var.github_role_name
 #   aws_region     = var.region
@@ -66,83 +76,86 @@ module "network" {
 #   github_ref  = var.github_ref
 # }
 
-# module "external_dns" {
-#   source = "../../modules/external-dns"
+module "external_dns" {
+  source = "./modules/external-dns"
 
-#   cluster_name      = module.eks.cluster_name
-#   oidc_provider_arn = module.eks.oidc_provider_arn
+  cluster_name      = module.eks.cluster_name
+  oidc_provider_arn = module.eks.oidc_provider_arn
 
-#   hosted_zone_id = var.hosted_zone_id
-#   domain_filters = var.domain_filters
-# }
+  hosted_zone_id = var.hosted_zone_id
+  domain_filters = var.domain_filters
+}
 
-# module "valkey" {
-#   source = "../../modules/elasticache-valkey"
+module "cache" {
+  source = "./modules/elasticache-valkey"
 
-#   name       = "dev"
-#   vpc_id     = module.network.vpc_id
-#   subnet_ids = module.network.private_subnets
+  name       = "dev"
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.private_subnets
 
-#   allowed_security_groups = [
-#     # module.security.shared_node_sg
-#     module.eks.cluster_primary_sg
-#   ]
-#   multi_az             = false
-#   cluster_mode_enabled = false
-#   family               = var.valkey_family
-#   node_type            = "cache.t2.small"
-#   node_count           = 1
-#   tags = {
-#     tenant = "tenant-a"
-#     env    = "prod"
-#   }
-# }
+  allowed_security_groups = [
+    module.eks.cluster_primary_sg
+  ]
+  multi_az             = false
+  cluster_mode_enabled = false
+  family               = var.valkey_family
+  node_type            = "cache.t2.small"
+  node_count           = 1
+  tags = {
+    Org     = var.org
+    Project = var.project
+    Env     = var.env
+    Cluster = var.cluster
+  }
+}
 
-# module "rabbitmq" {
-#   source         = "../../modules/rabbitmq"
-#   name           = "dev"
-#   instance_type  = "mq.t3.micro"
-#   engine_version = "3.13"
+module "cache_irsa" {
+  source = "./modules/valkey-irsa"
 
-#   vpc_id = module.network.vpc_id
-#   subnet_ids = [
-#     module.network.private_subnets[0]
-#   ]
+  cluster_oidc_provider_arn = module.eks.oidc_provider_arn
+  namespace                 = "platform"
+  service_account_name      = "valkey-client-sa"
 
-#   publicly_accessible = false
-#   allowed_security_groups = [
-#     module.eks.cluster_primary_sg,
-#     module.security.shared_node_sg, module.security.controlplane_sg
-#   ]
+  secret_name   = "valkey/password/dev"
+  secret_string = var.secret_string
+}
 
-#   multi_az = false
+module "rabbitmq" {
+  source         = "./modules/rabbitmq"
+  name           = "dev"
+  instance_type  = "mq.t3.micro"
+  engine_version = "3.13"
 
-#   tags = {
-#     tenant = "dev"
-#     env    = "prod"
-#   }
-# }
+  vpc_id = module.network.vpc_id
+  subnet_ids = [
+    module.network.private_subnets[0]
+  ]
+
+  publicly_accessible = false
+  allowed_security_groups = [
+    module.eks.cluster_primary_sg,
+    module.security.shared_node_sg, module.security.controlplane_sg
+  ]
+
+  multi_az = false
+
+  tags = {
+    Org     = var.org
+    Project = var.project
+    Env     = var.env
+    Cluster = var.cluster
+  }
+}
 
 # module "tls_ca" {
-#   source               = "../../modules/tls-ca"
+#   source               = "./modules/tls-ca"
 #   namespace            = kubernetes_namespace.platform.metadata[0].name
 #   namespace_dependency = kubernetes_namespace.platform
 #   configmap_name       = "aws-root-ca"
 # }
 
-# module "valkey_irsa" {
-#   source = "../../modules/valkey-irsa"
-
-#   cluster_oidc_provider_arn = module.eks.oidc_provider_arn
-#   namespace                 = "platform"
-#   service_account_name      = "valkey-client-sa"
-
-#   secret_name   = "valkey/password/dev"
-#   secret_string = var.secret_string
-# }
-
 # module "ses_irsa" {
-#   source                = "../../modules/ses-irsa"
+#   source                = "./modules/ses-irsa"
 #   role_name             = var.ses_role_name
 #   eks_oidc_provider_arn = module.eks.oidc_provider_arn
 #   eks_oidc_provider_url = module.eks.oidc_host
@@ -150,7 +163,9 @@ module "network" {
 #   service_account_name  = var.ses_service_account_name
 
 #   tags = {
-#     Project = "Test"
-#     Env     = "dev"
+#     Org     = var.org
+#     Project = var.project
+#     Env     = var.env
+#     Cluster = var.cluster
 #   }
 # }

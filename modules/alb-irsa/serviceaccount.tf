@@ -3,7 +3,7 @@
 # Annotated for IRSA (NOT Pod Identity)
 #####################################################################
 
-resource "kubernetes_service_account" "alb" {
+resource "kubernetes_service_account_v1" "alb" {
   metadata {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
