@@ -64,3 +64,26 @@ variable "cache_node_count" {
   type    = number
   default = 0
 }
+
+variable "rabbitmq_name" {
+  type = string
+}
+
+variable "rabbitmq_username" {
+  type = string
+}
+
+variable "rabbitmq_pod_identity_enabled" {
+  type = bool
+}
+
+variable "rabbitmq_password" {
+  type = string
+}
+variable "rabbitmq_engine_version" {
+  type = string
+}
+
+variable "rabbitmq_instance_type" {
+  type = string
+}

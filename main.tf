@@ -147,6 +147,45 @@ module "cache" {
   }
 }
 
+module "rabbitmq_pod_identity" {
+  source = "./modules/pod-identity"
+
+  cluster_name    = module.eks.cluster_name
+  namespace       = "messaging"
+  service_account = "rabbitmq-client"
+
+  inline_policies = {
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = module.rabbitmq.connection_secret_arn
+      }
+    ]
+  }
+}
+
+module "rabbitmq" {
+  source = "./modules/rabbitmq"
+
+  name       = var.rabbitmq_name
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.private_subnets
+
+  admin_username = var.rabbitmq_username
+  admin_password = var.rabbitmq_password
+
+  enable_pod_identity    = var.rabbitmq_pod_identity_enabled
+  pod_identity_role_name = module.rabbitmq_pod_identity.role_name
+  engine_version         = var.rabbitmq_engine_version
+  deployment_mode        = var.rabbitmq_pod_identity_enabled ? "SINGLE_INSTANCE" : "CLUSTER_MULTI_AZ"
+  instance_type          = var.rabbitmq_instance_type
+}
+
 # module "cache_irsa" {
 #   source = "./modules/valkey-irsa"
 

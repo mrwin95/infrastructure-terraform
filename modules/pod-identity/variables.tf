@@ -1,31 +1,32 @@
 variable "cluster_name" {
   type        = string
-  description = "EKS cluster name"
+  description = "EKS cluster name used for pod identity association"
 }
 
 variable "namespace" {
   type        = string
-  description = "Kubernetes namespace of the service account"
+  description = "Namespace of the Kubernetes ServiceAccount"
 }
 
 variable "service_account" {
   type        = string
-  description = "Kubernetes service account name"
-}
-
-variable "role_name" {
-  type        = string
-  description = "Name for the IAM role"
-}
-
-variable "policy_json_path" {
-  type        = string
-  default     = null
-  description = "Path to an IAM policy.json file. If null, no inline policy will be created."
+  description = "ServiceAccount name that will assume this IAM role"
 }
 
 variable "managed_policy_arns" {
   type        = list(string)
   default     = []
-  description = "Optional list of AWS managed policy ARNs"
+  description = "List of AWS managed policies to attach to the IAM role"
+}
+
+variable "inline_policies" {
+  # was: type = map(any)
+  type        = any
+  default     = null
+  description = "Inline policy document (unencoded). Will be jsonencoded inside the module."
+}
+
+variable "tags" {
+  type    = map(string)
+  default = {}
 }
