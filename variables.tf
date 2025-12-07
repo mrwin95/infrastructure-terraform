@@ -17,7 +17,10 @@ variable "github_role_name" {}
 variable "github_org" {}
 variable "github_repo" {}
 variable "github_ref" {}
-variable "valkey_family" {}
+variable "cache_name" {
+  type = string
+}
+variable "cache_family" {}
 variable "secret_string" {}
 variable "ses_role_name" {}
 variable "ses_service_account_name" {}
@@ -41,4 +44,23 @@ variable "env" {
 variable "cluster" {
   type        = string
   description = "Cluster name: blue | green | prod"
+}
+
+
+variable "cache_multi_az" {
+  type = bool
+}
+
+variable "cache_cluster_mode_enabled" {
+  type = bool
+}
+
+variable "cache_node_type" {
+  type    = string
+  default = "cache.t2.micro"
+}
+
+variable "cache_node_count" {
+  type    = number
+  default = 0
 }

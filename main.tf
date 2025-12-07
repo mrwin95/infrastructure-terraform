@@ -75,6 +75,24 @@ module "alb" {
   alb_policy_file = "${path.root}/policies/alb-controller-policy.json"
 }
 
+module "externaldns" {
+  source = "./modules/external-dns"
+
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+
+  cluster_name            = module.eks.cluster_name
+  name_prefix             = terraform.workspace
+  externaldns_policy_file = "${path.root}/policies/externaldns-policy.json"
+
+  txt_owner_id   = "${terraform.workspace}-externaldns"
+  domain_filters = var.domain_filters
+
+  sources = ["ingress"]
+}
+
 # module "alb" {
 #   source = "./modules/alb-irsa"
 
@@ -106,28 +124,28 @@ module "alb" {
 #   domain_filters = var.domain_filters
 # }
 
-# module "cache" {
-#   source = "./modules/elasticache-valkey"
+module "cache" {
+  source = "./modules/elasticache-valkey"
 
-#   name       = "dev"
-#   vpc_id     = module.network.vpc_id
-#   subnet_ids = module.network.private_subnets
+  name       = var.cache_name
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.private_subnets
 
-#   allowed_security_groups = [
-#     module.eks.cluster_primary_sg
-#   ]
-#   multi_az             = false
-#   cluster_mode_enabled = false
-#   family               = var.valkey_family
-#   node_type            = "cache.t2.small"
-#   node_count           = 1
-#   tags = {
-#     Org     = var.org
-#     Project = var.project
-#     Env     = var.env
-#     Cluster = var.cluster
-#   }
-# }
+  allowed_security_groups = [
+    module.eks.cluster_primary_sg
+  ]
+  multi_az             = var.cache_multi_az
+  cluster_mode_enabled = var.cache_cluster_mode_enabled
+  family               = var.cache_family
+  node_type            = var.cache_node_type
+  node_count           = var.cache_node_count
+  tags = {
+    Org     = var.org
+    Project = var.project
+    Env     = var.env
+    Cluster = var.cluster
+  }
+}
 
 # module "cache_irsa" {
 #   source = "./modules/valkey-irsa"
