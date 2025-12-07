@@ -186,6 +186,36 @@ module "rabbitmq" {
   instance_type          = var.rabbitmq_instance_type
 }
 
+module "flux_pod_identity" {
+  source = "./modules/pod-identity"
+
+  cluster_name    = module.eks.cluster_name
+  namespace       = "flux-system"
+  service_account = "flux"
+
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+    "arn:aws:iam::aws:policy/SecretsManagerReadWrite",
+    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+  ]
+
+  # Optional inline policy JSON
+  inline_policies = null
+
+  tags = {
+    Org     = var.org
+    Project = var.project
+    Env     = var.env
+    Cluster = var.cluster
+  }
+}
+
+module "fluxcd" {
+  source                = "./modules/fluxcd"
+  namespace             = "flux-system"
+  pod_identity_role_arn = module.flux_pod_identity.role_arn
+}
+
 # module "cache_irsa" {
 #   source = "./modules/valkey-irsa"
 
